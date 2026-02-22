@@ -1,6 +1,7 @@
 package tasks;
 
 import common.Person;
+
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -26,38 +27,42 @@ public class Task9 {
   // Костыль, эластик всегда выдает в топе "фальшивую персону".
   // Конвертируем начиная со второй
   public List<String> getNames(List<Person> persons) {
-    if (persons.size() == 0) {
+    if (persons.isEmpty()) {//вместо проверки на 0 использовать нужно isEmpty()
       return Collections.emptyList();
     }
-    persons.remove(0);
-    return persons.stream().map(Person::firstName).collect(Collectors.toList());
+    //вместо удаления просто пропустим 1
+    return persons.stream().skip(1).map(Person::firstName).collect(Collectors.toList());
   }
 
   // Зачем-то нужны различные имена этих же персон (без учета фальшивой разумеется)
   public Set<String> getDifferentNames(List<Person> persons) {
-    return getNames(persons).stream().distinct().collect(Collectors.toSet());
+    return new HashSet<>(getNames(persons));// Убран distinct так как это set и там уже только уникальные
+    // и так как там всего одна терминальная операция, stream заменяется на конструктор сета
   }
 
   // Тут фронтовая логика, делаем за них работу - склеиваем ФИО
   public String convertPersonToString(Person person) {
-    String result = "";
+    StringBuilder result = new StringBuilder();// Конкатенацию лучше делать через StringBuilder
+    // Дальше везде заменена на метод StringBuilder append
     if (person.secondName() != null) {
-      result += person.secondName();
+      result.append(person.secondName());
     }
 
     if (person.firstName() != null) {
-      result += " " + person.firstName();
+      result.append(" ").append(person.firstName());
     }
 
     if (person.secondName() != null) {
-      result += " " + person.secondName();
+      result.append(" ").append(person.secondName());
     }
-    return result;
+    return result.toString();
   }
 
   // словарь id персоны -> ее имя
   public Map<Integer, String> getPersonNames(Collection<Person> persons) {
-    Map<Integer, String> map = new HashMap<>(1);
+    // Бесполезно указывать такой низкий размер, он начнет расширяться после первого добавления
+    // ведь словарь расширяется при заполнении на 3/4
+    Map<Integer, String> map = new HashMap<>(persons.size());
     for (Person person : persons) {
       if (!map.containsKey(person.id())) {
         map.put(person.id(), convertPersonToString(person));
@@ -70,19 +75,22 @@ public class Task9 {
   public boolean hasSamePersons(Collection<Person> persons1, Collection<Person> persons2) {
     boolean has = false;
     for (Person person1 : persons1) {
-      for (Person person2 : persons2) {
-        if (person1.equals(person2)) {
-          has = true;
+      if (!has)// Добавлена проверка на то что совпадение не найдено
+        for (Person person2 : persons2) {
+          if (person1.equals(person2)) {
+            has = true;
+            break;//добавлен break, чтобы выйти из цикла после нахождения
+          }
         }
-      }
+      else break;// Если совпадение найдено, выйти из цикла
     }
     return has;
   }
 
   // Посчитать число четных чисел
   public long countEven(Stream<Integer> numbers) {
-    count = 0;
-    numbers.filter(num -> num % 2 == 0).forEach(num -> count++);
+    // Заменяем foreach на вызов count в stream
+    count = numbers.filter(num -> num % 2 == 0).count();
     return count;
   }
 
@@ -94,5 +102,14 @@ public class Task9 {
     Collections.shuffle(integers);
     Set<Integer> set = new HashSet<>(integers);
     assert snapshot.toString().equals(set.toString());
+    //Изначально мы создаем лист упорядоченных чисел
+    //Создаем копию
+    //Переставляем изначальный массив(убираем порядок)
+    //Создаем сет со значениями листа, так как в Integer
+    //hash это само число, hashSet заполняется числами подряд с поправкой на размер хэш-таблицы
+    //но так как она расширяется когда заполняется на 3/4
+    //по итогу выходит тот же массив чисел подряд
+    //который читается с 0 и до конца
+    //что приводит к постоянному true в assert
   }
 }
