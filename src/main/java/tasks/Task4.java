@@ -3,8 +3,10 @@ package tasks;
 import common.ApiPersonDto;
 import common.Person;
 import common.PersonConverter;
+
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /*
 Задача 4
@@ -22,6 +24,16 @@ public class Task4 {
   }
 
   public List<ApiPersonDto> convert(List<Person> persons) {
-    return new ArrayList<>();
+    return persons.stream()
+        .map(this::convertPersonToApiPersonDto)
+        .collect(Collectors.toList());
+  }
+
+  public ApiPersonDto convertPersonToApiPersonDto(Person person) {
+    ApiPersonDto apiPersonDto = new ApiPersonDto();
+    apiPersonDto.setCreated(person.createdAt().toEpochMilli());
+    apiPersonDto.setId(person.id().toString());
+    apiPersonDto.setName(person.firstName());
+    return apiPersonDto;
   }
 }
