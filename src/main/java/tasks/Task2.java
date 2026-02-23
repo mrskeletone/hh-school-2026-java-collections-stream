@@ -4,6 +4,7 @@ import common.Person;
 
 import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /*
 Задача 2
@@ -16,10 +17,7 @@ public class Task2 {
   public static List<Person> combineAndSortWithLimit(Collection<Person> persons1,
                                                      Collection<Person> persons2,
                                                      int limit) {
-   List<Person> personList=new ArrayList<>();
-   personList.addAll(persons1);
-   personList.addAll(persons2);
-    return personList.stream()
+    return Stream.concat(persons1.stream(), persons2.stream())
         .sorted(Comparator.comparing(Person::createdAt))
         .limit(limit)
         .collect(Collectors.toList());
