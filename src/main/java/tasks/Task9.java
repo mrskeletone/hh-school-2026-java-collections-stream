@@ -1,14 +1,8 @@
 package tasks;
 
 import common.Person;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
@@ -26,38 +20,29 @@ public class Task9 {
   // Костыль, эластик всегда выдает в топе "фальшивую персону".
   // Конвертируем начиная со второй
   public List<String> getNames(List<Person> persons) {
-    if (persons.size() == 0) {
-      return Collections.emptyList();
-    }
-    persons.remove(0);
-    return persons.stream().map(Person::firstName).collect(Collectors.toList());
+    //Удалена проверка на пустоту ведь заменили удаление на skip в стриме, а стрим уже вернет пустую
+    return persons.stream().skip(1).map(Person::firstName).collect(Collectors.toList());
   }
 
   // Зачем-то нужны различные имена этих же персон (без учета фальшивой разумеется)
   public Set<String> getDifferentNames(List<Person> persons) {
-    return getNames(persons).stream().distinct().collect(Collectors.toSet());
+    return new HashSet<>(getNames(persons));// Убран distinct так как это set и там уже только уникальные
+    // и так как там всего одна терминальная операция, stream заменяется на конструктор сета
   }
 
   // Тут фронтовая логика, делаем за них работу - склеиваем ФИО
   public String convertPersonToString(Person person) {
-    String result = "";
-    if (person.secondName() != null) {
-      result += person.secondName();
-    }
-
-    if (person.firstName() != null) {
-      result += " " + person.firstName();
-    }
-
-    if (person.secondName() != null) {
-      result += " " + person.secondName();
-    }
-    return result;
+    return Stream.of(person.secondName(), person.firstName(), person.middleName())//Замена на стрим с пропуском null значений
+        .filter(Objects::nonNull)
+        .collect(Collectors.joining(" "))
+        .trim();// удаление пробелов, если в строке " "
   }
 
   // словарь id персоны -> ее имя
   public Map<Integer, String> getPersonNames(Collection<Person> persons) {
-    Map<Integer, String> map = new HashMap<>(1);
+    // Бесполезно указывать такой низкий размер, он начнет расширяться после первого добавления
+    // ведь словарь расширяется при заполнении на 3/4
+    Map<Integer, String> map = new HashMap<>(persons.size());
     for (Person person : persons) {
       if (!map.containsKey(person.id())) {
         map.put(person.id(), convertPersonToString(person));
@@ -68,21 +53,25 @@ public class Task9 {
 
   // есть ли совпадающие в двух коллекциях персоны?
   public boolean hasSamePersons(Collection<Person> persons1, Collection<Person> persons2) {
-    boolean has = false;
-    for (Person person1 : persons1) {
-      for (Person person2 : persons2) {
-        if (person1.equals(person2)) {
-          has = true;
-        }
-      }
-    }
-    return has;
+    if(persons2==persons1)
+      return true; //Если это та же самая коллекция, то мы сразу возвращаем true
+    if(persons2==null||persons1==null)
+      return false;
+    if(persons2.isEmpty()||persons1.isEmpty())
+      return false;
+    Set<Person> personSet = new HashSet<>(persons2);
+    return persons1.stream()//Замена на стрим с проверкой содержится ли объект в коллекции persons2
+        .anyMatch(personSet::contains);
+    // Изначальная скорость O(n*m) мы пройдем для каждого элемента коллекции по каждому элементу второй
+    // Если обернуть одну коллекцию в hashSet мы потратим n времени для заполнения сета
+    // Далее мы пройдем по второй коллекции за m без нужды проходить по первой ведь там хеш-таблица
+    // И место будет вычислено следовательно скорость O(n+m)
   }
 
   // Посчитать число четных чисел
   public long countEven(Stream<Integer> numbers) {
-    count = 0;
-    numbers.filter(num -> num % 2 == 0).forEach(num -> count++);
+    // Заменяем foreach на вызов count в stream
+    count = numbers.filter(num -> num % 2 == 0).count();
     return count;
   }
 
@@ -94,5 +83,14 @@ public class Task9 {
     Collections.shuffle(integers);
     Set<Integer> set = new HashSet<>(integers);
     assert snapshot.toString().equals(set.toString());
+    //Изначально мы создаем лист упорядоченных чисел
+    //Создаем копию
+    //Переставляем изначальный массив(убираем порядок)
+    //Создаем сет со значениями листа, так как в Integer
+    //hash это само число, hashSet заполняется числами подряд с поправкой на размер хэш-таблицы
+    //но так как она расширяется когда заполняется на 3/4
+    //по итогу выходит тот же массив чисел подряд
+    //который читается с 0 и до конца
+    //что приводит к постоянному true в assert
   }
 }
