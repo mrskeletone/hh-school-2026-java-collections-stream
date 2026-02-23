@@ -23,14 +23,13 @@ public class Task1 {
 
   public List<Person> findOrderedPersons(List<Integer> personIds) {
     Set<Person> persons = personService.findPersons(personIds);
-    List<Person> personList = new ArrayList<>();
     Map<Integer, Person> personMap = persons.stream().
         collect(Collectors.toMap(Person::id,
             person -> person));
-    for (int i:personIds){
-      personList.add(personMap.get(i));
-    }
-    return personList;
+
+    return personIds.stream()
+        .map(personMap::get)
+        .collect(Collectors.toList());
   }// асимптотическая сложность O(n+m), n сложность от кол-ва персон найденных в  findPersons,
   // m сложность добавления в список согласно изначальной сортировке (пробежать по всей длине массива)
 }
