@@ -2,14 +2,7 @@ package tasks;
 
 import common.Person;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
@@ -27,10 +20,7 @@ public class Task9 {
   // Костыль, эластик всегда выдает в топе "фальшивую персону".
   // Конвертируем начиная со второй
   public List<String> getNames(List<Person> persons) {
-    if (persons.isEmpty()) {//вместо проверки на 0 использовать нужно isEmpty()
-      return Collections.emptyList();
-    }
-    //вместо удаления просто пропустим 1
+    //Удалена проверка на пустоту ведь заменили удаление на skip в стриме, а стрим уже вернет пустую
     return persons.stream().skip(1).map(Person::firstName).collect(Collectors.toList());
   }
 
@@ -42,20 +32,10 @@ public class Task9 {
 
   // Тут фронтовая логика, делаем за них работу - склеиваем ФИО
   public String convertPersonToString(Person person) {
-    StringBuilder result = new StringBuilder();// Конкатенацию лучше делать через StringBuilder
-    // Дальше везде заменена на метод StringBuilder append
-    if (person.secondName() != null) {
-      result.append(person.secondName());
-    }
-
-    if (person.firstName() != null) {
-      result.append(" ").append(person.firstName());
-    }
-
-    if (person.secondName() != null) {
-      result.append(" ").append(person.secondName());
-    }
-    return result.toString();
+    return Stream.of(person.secondName(), person.firstName(), person.middleName())//Замена на стрим с пропуском null значений
+        .filter(Objects::nonNull)
+        .collect(Collectors.joining(" "))
+        .trim();// удаление пробелов, если в строке " "
   }
 
   // словарь id персоны -> ее имя
@@ -73,18 +53,10 @@ public class Task9 {
 
   // есть ли совпадающие в двух коллекциях персоны?
   public boolean hasSamePersons(Collection<Person> persons1, Collection<Person> persons2) {
-    boolean has = false;
-    for (Person person1 : persons1) {
-      if (!has)// Добавлена проверка на то что совпадение не найдено
-        for (Person person2 : persons2) {
-          if (person1.equals(person2)) {
-            has = true;
-            break;//добавлен break, чтобы выйти из цикла после нахождения
-          }
-        }
-      else break;// Если совпадение найдено, выйти из цикла
-    }
-    return has;
+    if(persons2==persons1)
+      return true; //Если это та же самая коллекция, то мы сразу возвращаем true
+    return persons1.stream()//Замена на стрим с проверкой содержится ли объект в коллекции persons2
+        .anyMatch(persons2::contains);
   }
 
   // Посчитать число четных чисел
