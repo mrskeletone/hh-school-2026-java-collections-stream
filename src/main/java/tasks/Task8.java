@@ -27,13 +27,9 @@ public class Task8 {
             .collect(Collectors.toSet())).stream()
         .collect(Collectors.groupingBy(Resume::personId));
     return persons.stream()
-        .map(person -> {
-          Set<Resume> resumeSet = new HashSet<>();
-          if (resumes.containsKey(person.id())) {
-            resumeSet.addAll(resumes.get(person.id()));
-          }
-          return new PersonWithResumes(person, resumeSet);
-        })
+        .map(person ->
+            new PersonWithResumes(person, new HashSet<>(resumes.getOrDefault(person.id(), new ArrayList<>())))
+        )
         .collect(Collectors.toSet());
   }
 }
