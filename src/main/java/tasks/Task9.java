@@ -55,8 +55,17 @@ public class Task9 {
   public boolean hasSamePersons(Collection<Person> persons1, Collection<Person> persons2) {
     if(persons2==persons1)
       return true; //Если это та же самая коллекция, то мы сразу возвращаем true
+    if(persons2==null||persons1==null)
+      return false;
+    if(persons2.isEmpty()||persons1.isEmpty())
+      return false;
+    Set<Person> personSet = new HashSet<>(persons2);
     return persons1.stream()//Замена на стрим с проверкой содержится ли объект в коллекции persons2
-        .anyMatch(persons2::contains);
+        .anyMatch(personSet::contains);
+    // Изначальная скорость O(n*m) мы пройдем для каждого элемента коллекции по каждому элементу второй
+    // Если обернуть одну коллекцию в hashSet мы потратим n времени для заполнения сета
+    // Далее мы пройдем по второй коллекции за m без нужды проходить по первой ведь там хеш-таблица
+    // И место будет вычислено следовательно скорость O(n+m)
   }
 
   // Посчитать число четных чисел
