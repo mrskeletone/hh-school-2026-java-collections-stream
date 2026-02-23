@@ -25,15 +25,9 @@ public class Task4 {
 
   public List<ApiPersonDto> convert(List<Person> persons) {
     return persons.stream()
-        .map(this::convertPersonToApiPersonDto)
+        .map(personConverter::convert)
         .collect(Collectors.toList());
   }
 
-  public ApiPersonDto convertPersonToApiPersonDto(Person person) {
-    ApiPersonDto apiPersonDto = new ApiPersonDto();
-    apiPersonDto.setCreated(person.createdAt().toEpochMilli());
-    apiPersonDto.setId(person.id().toString());
-    apiPersonDto.setName(person.firstName());
-    return apiPersonDto;
-  }
+
 }
