@@ -5,9 +5,7 @@ import common.PersonService;
 import common.PersonWithResumes;
 import common.Resume;
 
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /*
@@ -24,19 +22,18 @@ public class Task8 {
   }
 
   public Set<PersonWithResumes> enrichPersonsWithResumes(Collection<Person> persons) {
-    Set<Resume> resumes = personService.findResumes(persons.stream()
-        .map(Person::id)
-        .collect(Collectors.toSet()));
-
+    Map<Integer, List<Resume>> resumes = personService.findResumes(persons.stream()
+            .map(Person::id)
+            .collect(Collectors.toSet())).stream()
+        .collect(Collectors.groupingBy(Resume::personId));
     return persons.stream()
         .map(person -> {
-         Set<Resume> resumeSet=new HashSet<>();
-          for(Resume resume: resumes){
-            if(resume.personId().equals(person.id())){
-              resumeSet.add(resume);
-            }
+          Set<Resume> resumeSet = new HashSet<>();
+          if (resumes.containsKey(person.id())) {
+            resumeSet.addAll(resumes.get(person.id()));
           }
-          return new PersonWithResumes(person,resumeSet);
-        }).collect(Collectors.toSet());
+          return new PersonWithResumes(person, resumeSet);
+        })
+        .collect(Collectors.toSet());
   }
 }
